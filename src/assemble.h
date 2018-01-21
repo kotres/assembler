@@ -2,7 +2,10 @@
 #define ASSEMBLE_H
 
 #include <stdio.h>
+#include <string.h>
 
-void assemble(const char* filename);
+int assemble(const char* source_file_name);
+
+void parseLine(const char* line);
 
 #endif
