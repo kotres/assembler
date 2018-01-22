@@ -1,16 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "assemble.h"
+#include "assembler.h"
 
 int main(int argc, char *argv[]){
+    struct Assembler assembler;
     if(argc<2){
         printf("error: no input file name given\n");
         return EXIT_FAILURE;
     }
-    if(!assemble(argv[1])){
-        return EXIT_SUCCESS;
+    if(!assemblerInitialise(&assembler,argv[1])){
+	return EXIT_FAILURE;
+    }
+    if(!assemblerAssemble(&assembler)){
+	return EXIT_FAILURE;
     }
 
-    return EXIT_FAILURE;
+    assemblerDestroy(&assembler);
+
+    return EXIT_SUCCESS;
 }

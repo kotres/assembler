@@ -29,6 +29,11 @@ int sourceCodeInitialise(struct SourceCode *code,char* source_file_name){
 
     while(fgets(fileBuffer,FILE_BUFFER_SIZE,(FILE*)source_file_pointer)){
 	code->data[i]=malloc((strlen(fileBuffer)+1)*sizeof(char));
+	if(code->data[i]==NULL){
+	    printf("error: source code malloc failed");
+	    fclose(source_file_pointer);
+	    return -1;
+	}
 	strcpy(code->data[i], fileBuffer);
 	++i;
     }
