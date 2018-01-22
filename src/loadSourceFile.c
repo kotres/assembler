@@ -25,6 +25,7 @@ int loadSourceFile(char *source_file_name, char **source_code){
 	return -1;
     }
 
+
     if(ferror(source_file_pointer)){
 	printf("I/O error when reading");
 	fclose(source_file_pointer);
@@ -40,6 +41,8 @@ unsigned int getSourceFileSize(FILE *fp){
     while(fgets(fileBuffer,FILE_BUFFER_SIZE,(FILE*)fp)){
 	if(!isLineEmpty(fileBuffer)){
 	    ++i;
+	    cleanLine(fileBuffer);
+	    printf("%s\n",fileBuffer);
 	}
     }
     rewind(fp);
@@ -60,4 +63,44 @@ int isLineEmpty(char *line){
     if(line_temp[0]=='\r')
 	return 1;
     return 0;
+}
+
+void removeWhitespace(char *line){
+    char *whitespace_position;
+    char *p;
+    whitespace_position=strchr(line, ' ');
+    while(whitespace_position!=NULL){
+	p=whitespace_position;
+	while(*p!=0){
+	    *p=*(p+1);
+	    p++;
+	}
+	whitespace_position=strchr(line, ' ');
+    }
+    whitespace_position=strchr(line, '\t');
+    while(whitespace_position!=NULL){
+	p=whitespace_position;
+	while(*p!=0){
+	    *p=*(p+1);
+	    p++;
+	}
+	whitespace_position=strchr(line, '\t');
+    }
+}
+
+void cleanLine(char *line){
+    char *end_of_line;
+    removeWhitespace(line);
+    end_of_line=strchr(line, ';');
+    if(end_of_line!=NULL){
+	*end_of_line=0;
+    }
+    end_of_line=strchr(line, '\r');
+    if(end_of_line!=NULL){
+	*end_of_line=0;
+    }
+    end_of_line=strchr(line, '\n');
+    if(end_of_line!=NULL){
+	*end_of_line=0;
+    }
 }
