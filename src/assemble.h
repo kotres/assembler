@@ -3,8 +3,11 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
-int assemble(const char* source_file_name);
+#include "loadSourceFile.h"
+
+int assemble(char *source_file_name);
 
 void parseLine(const char* line);
 

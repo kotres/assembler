@@ -1,27 +1,11 @@
 #include "assemble.h"
 
-int assemble(const char *source_file_name){
-    FILE *source_file_pointer;
-    char source_file_buffer[255];
-
-    printf("assembling %s\n",source_file_name);
-
-    source_file_pointer = fopen(source_file_name,"r");
-
-    if(source_file_pointer==NULL){
-        printf("error: failed to open file %s\n",source_file_name);
-        return -1;
-    }
-    while(fgets(source_file_buffer,255,(FILE*)source_file_pointer)){
-        parseLine(source_file_buffer);
-    }
-    if(ferror(source_file_pointer)){
-        printf("I/O error when reading");
-        fclose(source_file_pointer);
-        return -1;
-    }
-    fclose(source_file_pointer);
-    return 0;
+int assemble(char *source_file_name){
+    char **source_code=NULL;
+    int return_val;
+    return_val = loadSourceFile(source_file_name,source_code);
+    free(source_code);
+    return return_val;
 }
 
 void parseLine(const char *line){
