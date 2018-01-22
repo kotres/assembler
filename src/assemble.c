@@ -1,10 +1,10 @@
 #include "assemble.h"
 
 int assemble(char *source_file_name){
-    char **source_code=NULL;
+    struct SourceCode source_code;
     int return_val;
-    return_val = loadSourceFile(source_file_name,source_code);
-    free(source_code);
+    return_val = sourceCodeInitialise(&source_code,source_file_name);
+    sourceCodeDestroy(&source_code);
     return return_val;
 }
 

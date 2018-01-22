@@ -1,9 +1,11 @@
-#include "loadSourceFile.h"
+#include "sourceCode.h"
 #define FILE_BUFFER_SIZE 256
 
-int loadSourceFile(char *source_file_name, char **source_code){
+int sourceCodeInitialise(struct SourceCode *code,char* source_file_name){
     FILE *source_file_pointer;
-    unsigned int file_size;
+
+    char fileBuffer[FILE_BUFFER_SIZE];
+    unsigned int i=0;
 
     source_file_pointer = fopen(source_file_name,"r");
     if(source_file_pointer==NULL){
@@ -11,45 +13,70 @@ int loadSourceFile(char *source_file_name, char **source_code){
 	return -1;
     }
 
-    file_size=getSourceFileSize(source_file_pointer);
-    if(file_size==0){
+    code->line_size=sourceCodeGetFileLineSize(source_file_pointer);
+    if(code->line_size==0){
 	printf("error: empty file detected");
 	fclose(source_file_pointer);
 	return -1;
     }
 
-    source_code=malloc(file_size * sizeof(char*));
-    if(source_code==NULL){
+    code->data=malloc( code->line_size * sizeof(char*));
+    if(code->data==NULL){
 	printf("error: source code malloc failed");
 	fclose(source_file_pointer);
 	return -1;
     }
 
+    while(fgets(fileBuffer,FILE_BUFFER_SIZE,(FILE*)source_file_pointer)){
+	code->data[i]=malloc((strlen(fileBuffer)+1)*sizeof(char));
+	strcpy(code->data[i], fileBuffer);
+	++i;
+    }
 
     if(ferror(source_file_pointer)){
 	printf("I/O error when reading");
 	fclose(source_file_pointer);
 	return -1;
     }
+    printf("%s loaded to memory\n",source_file_name);
     fclose(source_file_pointer);
+
+    code->name=source_file_name;
     return 0;
 }
 
-unsigned int getSourceFileSize(FILE *fp){
+/*int load_lines(FILE *fp, unsigned int file_size, char **source_code){
     char fileBuffer[FILE_BUFFER_SIZE];
     unsigned int i=0;
     while(fgets(fileBuffer,FILE_BUFFER_SIZE,(FILE*)fp)){
 	if(!isLineEmpty(fileBuffer)){
-	    ++i;
 	    cleanLine(fileBuffer);
-	    printf("%s\n",fileBuffer);
+	    printf("%s %lu\n",fileBuffer,strlen(fileBuffer));
+	    source_code[i]=malloc((strlen(fileBuffer)+1)*sizeof(char));
+	    ++i;
 	}
+    }
+}*/
+
+unsigned int sourceCodeGetFileLineSize(FILE *fp){
+    char fileBuffer[FILE_BUFFER_SIZE];
+    unsigned int i=0;
+    while(fgets(fileBuffer,FILE_BUFFER_SIZE,(FILE*)fp)){
+	++i;
     }
     rewind(fp);
     return i;
 }
 
-int isLineEmpty(char *line){
+void sourceCodeDestroy(struct SourceCode *code){
+    unsigned int i=0;
+    for(i=0;i<code->line_size;++i){
+	free(code->data[i]);
+    }
+    free(*code->data);
+}
+
+/*int isLineEmpty(char *line){
     char *line_temp=line;
     while(line_temp[0]==' '||line_temp[0]=='\t'){
 	++line_temp;
@@ -103,4 +130,4 @@ void cleanLine(char *line){
     if(end_of_line!=NULL){
 	*end_of_line=0;
     }
-}
+}*/

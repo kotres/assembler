@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "loadSourceFile.h"
+#include "sourceCode.h"
 
 int assemble(char *source_file_name);
 
