@@ -16,6 +16,8 @@ int sourceCodeInitialise(struct SourceCode *code,char* source_file_name);
 
 unsigned int sourceCodeGetFileLineSize(FILE *fp);
 
+char* sourceCodeGetLine(struct SourceCode *code,unsigned int line_number);
+
 void sourceCodeDestroy(struct SourceCode *code);
 
 

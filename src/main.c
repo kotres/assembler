@@ -13,6 +13,7 @@ int main(int argc, char *argv[]){
 	return EXIT_FAILURE;
     }
     if(!assemblerAssemble(&assembler)){
+	assemblerDestroy(&assembler);
 	return EXIT_FAILURE;
     }
 
