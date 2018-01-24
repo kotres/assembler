@@ -8,73 +8,19 @@ int assemblerInitialise(struct Assembler *assembler, char *source_file_name){
     if(cleanCodeInitialize(&assembler->clean_code,&assembler->source_code)!=0){
 	return -1;
     }
+    assembler->labels=NULL;
     return 0;
 }
 
 int assemblerAssemble(struct Assembler *assembler){
-   /* unsigned int i=0;
-    char cleaned_line[256];
-    for(i=0;i<assembler->source_code.line_size;++i){
-	strcpy(cleaned_line,sourceCodeGetLine(&assembler->source_code,i));
-	assemblerCleanLine(cleaned_line);
-	if(assemblerParseLine(assembler,cleaned_line)==-1){
-	    printf("error parsing line %u: %s",(i+1),sourceCodeGetLine(&assembler->source_code,i));
-	    return -1;
-	}
-	assembler->location_counter++;
-    }*/
+    if(labelInitialize(assembler->labels,0,0,"label")!=0){
+	return -1;
+    }
 
     return 0;
 }
 
-/*void assemblerCleanLine(char *line){
-    char *end_of_line;
-    assemblerRemoveWhitespace(line);
-    end_of_line=strchr(line, ';');
-    if(end_of_line!=NULL){
-	*end_of_line=0;
-    }
-    end_of_line=strchr(line, '\r');
-    if(end_of_line!=NULL){
-	*end_of_line=0;
-    }
-    end_of_line=strchr(line, '\n');
-    if(end_of_line!=NULL){
-	*end_of_line=0;
-    }
-    assemblerConvertToUpperCase(line);
-}
 
-void assemblerRemoveWhitespace(char *line){
-    char *whitespace_position;
-    char *p;
-    whitespace_position=strchr(line, ' ');
-    while(whitespace_position!=NULL){
-	p=whitespace_position;
-	while(*p!=0){
-	    *p=*(p+1);
-	    p++;
-	}
-	whitespace_position=strchr(line, ' ');
-    }
-    whitespace_position=strchr(line, '\t');
-    while(whitespace_position!=NULL){
-	p=whitespace_position;
-	while(*p!=0){
-	    *p=*(p+1);
-	    p++;
-	}
-	whitespace_position=strchr(line, '\t');
-    }
-}
-
-void assemblerConvertToUpperCase(char *line){
-    char* lower_case_character=line;
-    while(*lower_case_character!=0){
-	*lower_case_character=(char)(toupper(*lower_case_character));
-	lower_case_character++;
-    }
-}*/
 /* ADD ADDC ALS AND ARS
  * BR BRL
  * CMP
@@ -192,4 +138,5 @@ int assemblerDetectInstruction(char *line){
 void assemblerDestroy(struct Assembler *assembler){
     sourceCodeDestroy(&assembler->source_code);
     cleanCodeDestroy(&assembler->clean_code);
+    labelDestroy(assembler->labels);
 }
