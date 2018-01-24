@@ -13,14 +13,14 @@ int sourceCodeInitialise(struct SourceCode *code,char* source_file_name){
 	return -1;
     }
 
-    code->line_size=sourceCodeGetFileLineSize(source_file_pointer);
-    if(code->line_size==0){
+    code->size=sourceCodeGetFileLineSize(source_file_pointer);
+    if(code->size==0){
 	printf("error: empty file detected");
 	fclose(source_file_pointer);
 	return -1;
     }
 
-    code->data=malloc( code->line_size * sizeof(char*));
+    code->data=(char**)malloc( code->size * sizeof(char*));
     if(code->data==NULL){
 	printf("error: source code malloc failed");
 	fclose(source_file_pointer);
@@ -28,9 +28,9 @@ int sourceCodeInitialise(struct SourceCode *code,char* source_file_name){
     }
 
     while(fgets(fileBuffer,FILE_BUFFER_SIZE,(FILE*)source_file_pointer)){
-	code->data[i]=malloc((strlen(fileBuffer)+1)*sizeof(char));
+	code->data[i]=(char*)malloc((strlen(fileBuffer)+1)*sizeof(char));
 	if(code->data[i]==NULL){
-	    printf("error: source code malloc failed");
+	    printf("error: source code line malloc failed");
 	    fclose(source_file_pointer);
 	    return -1;
 	}
@@ -61,7 +61,7 @@ unsigned int sourceCodeGetFileLineSize(FILE *fp){
 }
 
 char* sourceCodeGetLine(struct SourceCode *code,unsigned int line_number){
-    if(line_number>code->line_size){
+    if(line_number>code->size){
 	return NULL;
     }
     return code->data[line_number];
@@ -69,7 +69,7 @@ char* sourceCodeGetLine(struct SourceCode *code,unsigned int line_number){
 
 void sourceCodeDestroy(struct SourceCode *code){
     unsigned int i=0;
-    for(i=0;i<code->line_size;++i){
+    for(i=0;i<code->size;++i){
 	free(code->data[i]);
     }
     free(*code->data);

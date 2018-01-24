@@ -2,19 +2,17 @@
 
 int assemblerInitialise(struct Assembler *assembler, char *source_file_name){
     assembler->location_counter=0;
-    if(!sourceCodeInitialise(&assembler->source_code,source_file_name)){
+    if(sourceCodeInitialise(&assembler->source_code,source_file_name)!=0){
 	return -1;
     }
-    if(!assembledCodeInitialize(&assembler->assembled_code,assembler->source_code.line_size,"out")){
+    if(cleanCodeInitialize(&assembler->clean_code,&assembler->source_code)!=0){
 	return -1;
     }
-
-
     return 0;
 }
 
 int assemblerAssemble(struct Assembler *assembler){
-    unsigned int i=0;
+   /* unsigned int i=0;
     char cleaned_line[256];
     for(i=0;i<assembler->source_code.line_size;++i){
 	strcpy(cleaned_line,sourceCodeGetLine(&assembler->source_code,i));
@@ -24,12 +22,12 @@ int assemblerAssemble(struct Assembler *assembler){
 	    return -1;
 	}
 	assembler->location_counter++;
-    }
+    }*/
 
     return 0;
 }
 
-void assemblerCleanLine(char *line){
+/*void assemblerCleanLine(char *line){
     char *end_of_line;
     assemblerRemoveWhitespace(line);
     end_of_line=strchr(line, ';');
@@ -76,7 +74,7 @@ void assemblerConvertToUpperCase(char *line){
 	*lower_case_character=(char)(toupper(*lower_case_character));
 	lower_case_character++;
     }
-}
+}*/
 /* ADD ADDC ALS AND ARS
  * BR BRL
  * CMP
@@ -94,7 +92,7 @@ void assemblerConvertToUpperCase(char *line){
  * UDIV UMUL
  * XCH XOR
   */
-int assemblerParseLine(struct Assembler *assembler, char *line){
+/*int assemblerParseLine(struct Assembler *assembler, char *line){
     switch (line[0]) {
     case 0:
 	return 0;
@@ -184,14 +182,14 @@ int assemblerDetectInstruction(char *line){
 	printf("X\n");
 	break;
     default:
-	/*return -1;*/
+	return -1;
 	break;
     }
     return 1;
 
-}
+}*/
 
 void assemblerDestroy(struct Assembler *assembler){
     sourceCodeDestroy(&assembler->source_code);
-    /*assembledCodeDestroy(&assembler->assembled_code);*/
+    cleanCodeDestroy(&assembler->clean_code);
 }

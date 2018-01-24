@@ -9,7 +9,7 @@ struct SourceCode
 {
     char* name;
     char** data;
-    unsigned int line_size;
+    unsigned int size;
 };
 
 int sourceCodeInitialise(struct SourceCode *code,char* source_file_name);

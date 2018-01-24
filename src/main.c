@@ -9,7 +9,7 @@ int main(int argc, char *argv[]){
         printf("error: no input file name given\n");
         return EXIT_FAILURE;
     }
-    if(!assemblerInitialise(&assembler,argv[1])){
+    if(assemblerInitialise(&assembler,argv[1])!=0){
 	return EXIT_FAILURE;
     }
     if(!assemblerAssemble(&assembler)){
