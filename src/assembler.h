@@ -27,6 +27,8 @@ int assemblerLoadSourceCode(struct Assembler *assembler,const char *source_file_
 
 int assemblerFindLabels(struct Assembler *assembler);
 
+int assemblerDecodeSourceCode(struct Assembler *assembler);
+
 void assemblerDestroy(struct Assembler *assembler);
 
 #endif

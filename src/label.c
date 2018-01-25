@@ -53,6 +53,48 @@ int labelPushBack(struct Label *label, uint32_t address,const char *name){
 
 }
 
+struct Label* labelFindLabel(struct Label *label,const char *name){
+    unsigned int i=0;
+    int match=1;
+    if(name[0]==0){
+	printf("error to find label: empty name given\n");
+	return NULL;
+    }
+    if(name[1]==0){
+	printf("error to find label: empty name given\n");
+	return NULL;
+    }
+    if(label==NULL){
+	printf("error to find label: NULL label pointer given\n");
+	return NULL;
+    }
+    while(label!=NULL&&match==0){
+	i=0;
+	match=1;
+	while(label->name[i]!=0&&name[i+1]!=0&&match==1){
+	    if(label->name[i]!=name[i+1])
+		match=0;
+	    ++i;
+	}
+	if(match!=0){
+	    if(label->name[i]!=0||name[i+1]==':'){
+		match=0;
+	    }
+	}
+    }
+    return label;
+}
+
+struct Label* labelEnd(struct Label *label){
+    if(label==NULL){
+	return NULL;
+    }
+    while(label->next!=NULL){
+	label=label->next;
+    }
+    return label;
+}
+
 void labelDestroy(struct Label *label){
     struct Label *next_label;
     while(label!=NULL){

@@ -36,6 +36,11 @@ int sourceCodeInitialise(struct SourceCode **code,const char* line,unsigned int 
     strcpy(malloced_code->clean_line,line_buffer);
     malloced_code->line_number=line_number;
     malloced_code->next_line=NULL;
+    malloced_code->binary_data=NULL;
+    malloced_code->binary_size=0;
+    malloced_code->label=NULL;
+    malloced_code->type=not_determined_type;
+
     return 0;
 }
 
@@ -81,6 +86,10 @@ int sourceCodePushBack(struct SourceCode *code,const char* line,unsigned int lin
     strcpy(next_line->clean_line,line_buffer);
     next_line->line_number=line_number;
     next_line->next_line=NULL;
+    next_line->binary_data=NULL;
+    next_line->binary_size=0;
+    next_line->label=NULL;
+    next_line->type=not_determined_type;
     return 0;
 }
 

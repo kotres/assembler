@@ -16,6 +16,10 @@ int assemblerAssemble(struct Assembler *assembler,const char *source_file_name){
 	return -1;
     }
 
+    if(assemblerDecodeSourceCode(assembler)!=0){
+	return -1;
+    }
+
     return 0;
 }
 
@@ -63,7 +67,7 @@ int assemblerLoadSourceCode(struct Assembler *assembler,const char *source_file_
     printf("%s loaded to memory:\n",source_file_name);
     fclose(source_file_pointer);
 
-    sourceCodePrint(assembler->source_code);
+    /*sourceCodePrint(assembler->source_code);*/
 
     return 0;
 }
@@ -94,13 +98,33 @@ int assemblerFindLabels(struct Assembler *assembler){
 		    if(labelPushBack(assembler->labels,0,label_name)!=0)
 			return -1;
 		}
+		source_code_iterator->label=labelEnd(assembler->labels);
+		source_code_iterator->binary_size=0;
+		source_code_iterator->type=label_type;
 	    }
 	}
 	source_code_iterator=source_code_iterator->next_line;
     }
 
-    labelPrintLabels(assembler->labels);
+    /*labelPrintLabels(assembler->labels);*/
 
+    return 0;
+}
+
+int assemblerDecodeSourceCode(struct Assembler *assembler){
+    struct SourceCode *source_code=assembler->source_code;
+    while(source_code!=NULL){
+	switch (source_code->clean_line[0]) {
+	case '.':
+	    source_code->binary_size=0;
+	    source_code->type=assembler_directive_type;
+	    printf("%u: %s is an assembler directive\n",source_code->line_number,source_code->clean_line);
+	    break;
+	default:
+	    break;
+	}
+	source_code=source_code->next_line;
+    }
     return 0;
 }
 

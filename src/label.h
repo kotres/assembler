@@ -18,6 +18,10 @@ int labelInitialize(struct Label **label,uint32_t address,const char* name);
 
 int labelPushBack(struct Label *label, uint32_t address, const char *name);
 
+struct Label* labelFindLabel(struct Label *label,const char *name);
+
+struct Label* labelEnd(struct Label *label);
+
 void labelPrintLabels(struct Label *label);
 
 void labelDestroy(struct Label *label);
