@@ -23,7 +23,7 @@ const char* sourceCodeGetLine(struct SourceCode *code,unsigned int line_number);
 
 const char* sourceCodeGetCleanLine(struct SourceCode *code,unsigned int line_number);
 
-void sourceCodeDestroy(struct SourceCode **code);
+void sourceCodeDestroy(struct SourceCode *code);
 
 void sourceCodePrint(struct SourceCode *code);
 

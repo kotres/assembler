@@ -10,14 +10,13 @@
 struct Label
 {
     uint32_t address;
-    char fixed;
-    char* name;
+    char name[256];
     struct Label *next;
 };
 
-int labelInitialize(struct Label *label,uint32_t address,char fixed,char* name);
+int labelInitialize(struct Label **label,uint32_t address,const char* name);
 
-int labelPushBack(struct Label *label,uint32_t address,char fixed,char* name);
+int labelPushBack(struct Label *label, uint32_t address, const char *name);
 
 void labelPrintLabels(struct Label *label);
 

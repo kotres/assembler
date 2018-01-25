@@ -57,9 +57,19 @@ int sourceCodePushBack(struct SourceCode *code,const char* line,unsigned int lin
     return 0;
 }
 
+void sourceCodeDestroy(struct SourceCode *code){
+    struct SourceCode *next_code;
+    while(code!=NULL){
+	next_code=code->next_line;
+	free(code);
+	code=next_code;
+    }
+    printf("source code freed from memory\n");
+}
+
 void sourceCodePrint(struct SourceCode *code){
     while(code!=NULL){
-	printf("%u: %s",code->line_number,code->line);
+	printf("%u: %s %s\n",code->line_number,code->line,code->clean_line);
 	code=code->next_line;
     }
 }

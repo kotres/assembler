@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 #include "sourceCode.h"
-/*#include "label.h"*/
+#include "label.h"
 
 #define MAXIMUM_LINE_LENGTH 256
 
@@ -23,7 +23,9 @@ void assemblerInitialise(struct Assembler *assembler);
 
 int assemblerAssemble(struct Assembler *assembler,const char *source_file_name);
 
-/*int assemblerFindLabels(struct Assembler *assembler);*/
+int assemblerLoadSourceCode(struct Assembler *assembler,const char *source_file_name);
+
+int assemblerFindLabels(struct Assembler *assembler);
 
 void assemblerDestroy(struct Assembler *assembler);
 
