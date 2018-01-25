@@ -29,6 +29,8 @@ int assemblerFindLabels(struct Assembler *assembler);
 
 int assemblerDecodeSourceCode(struct Assembler *assembler);
 
+int assemblerParseLine(struct Assembler *assembler, struct SourceCode **iterator_pointer);
+
 void assemblerDestroy(struct Assembler *assembler);
 
 #endif

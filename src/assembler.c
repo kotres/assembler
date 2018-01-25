@@ -114,16 +114,32 @@ int assemblerFindLabels(struct Assembler *assembler){
 int assemblerDecodeSourceCode(struct Assembler *assembler){
     struct SourceCode *source_code=assembler->source_code;
     while(source_code!=NULL){
-	switch (source_code->clean_line[0]) {
-	case '.':
-	    source_code->binary_size=0;
-	    source_code->type=assembler_directive_type;
-	    printf("%u: %s is an assembler directive\n",source_code->line_number,source_code->clean_line);
-	    break;
-	default:
-	    break;
-	}
+	assemblerParseLine(assembler,&source_code);
 	source_code=source_code->next_line;
+    }
+    return 0;
+}
+
+int assemblerParseLine(struct Assembler *assembler,struct SourceCode **iterator_pointer){
+    struct SourceCode *iterator=*iterator_pointer;
+    switch (iterator->clean_line[0]) {
+    case '.':
+	iterator->binary_size=0;
+	iterator->type=assembler_directive_type;
+	printf("%u: %s is an assembler directive\n",iterator->line_number,iterator->clean_line);
+	break;
+    case'@':
+	printf("%u: %s is label %s: %u\n",iterator->line_number,iterator->clean_line,
+	       iterator->label->name,iterator->label->address);
+	if(iterator->label->address!=assembler->location_counter){
+	    iterator->label->address=assembler->location_counter;
+	    *iterator_pointer=assembler->source_code;
+	    assembler->location_counter=0;
+	}
+	break;
+    default:
+	assembler->location_counter++;
+	break;
     }
     return 0;
 }
