@@ -8,20 +8,22 @@
 #include <stdint.h>
 
 #include "sourceCode.h"
-#include "cleanCode.h"
-#include "label.h"
+/*#include "label.h"*/
+
+#define MAXIMUM_LINE_LENGTH 256
 
 struct Assembler
 {
-    struct SourceCode source_code;
-    struct CleanCode clean_code;
+    struct SourceCode *source_code;
     uint32_t location_counter;
     struct Label *labels;
 };
 
-int assemblerInitialise(struct Assembler *assembler, char *source_file_name);
+void assemblerInitialise(struct Assembler *assembler);
 
-int assemblerAssemble(struct Assembler *assembler);
+int assemblerAssemble(struct Assembler *assembler,const char *source_file_name);
+
+/*int assemblerFindLabels(struct Assembler *assembler);*/
 
 void assemblerDestroy(struct Assembler *assembler);
 

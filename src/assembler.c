@@ -1,25 +1,94 @@
 #include "assembler.h"
 
-int assemblerInitialise(struct Assembler *assembler, char *source_file_name){
+void assemblerInitialise(struct Assembler *assembler){
     assembler->location_counter=0;
-    if(sourceCodeInitialise(&assembler->source_code,source_file_name)!=0){
-	return -1;
-    }
-    if(cleanCodeInitialize(&assembler->clean_code,&assembler->source_code)!=0){
-	return -1;
-    }
     assembler->labels=NULL;
-    return 0;
+    assembler->source_code=NULL;
 }
 
-int assemblerAssemble(struct Assembler *assembler){
-    if(labelInitialize(assembler->labels,0,0,"label")!=0){
+int assemblerAssemble(struct Assembler *assembler,const char *source_file_name){
+    FILE *source_file_pointer;
+
+    char file_buffer[MAXIMUM_LINE_LENGTH];
+    unsigned int i=0;
+
+    source_file_pointer = fopen(source_file_name,"r");
+    if(source_file_pointer==NULL){
+	printf("error: failed to open file %s\n",source_file_name);
 	return -1;
     }
 
+    while(fgets(file_buffer,MAXIMUM_LINE_LENGTH,(FILE*)source_file_pointer)){
+	if(assembler->source_code==NULL){
+	    if(sourceCodeInitialise(&assembler->source_code,file_buffer,i)!=0)
+	    {
+		printf("error: failed to initialize source code list\n");
+		return -1;
+	    }
+	}
+	else{
+	    if(sourceCodePushBack(assembler->source_code,file_buffer,i)!=0)
+	    {
+		printf("error: failed to push back source code list\n");
+		return -1;
+	    }
+	}
+	++i;
+    }
+
+    if(ferror(source_file_pointer)){
+	printf("I/O error when reading");
+	fclose(source_file_pointer);
+	return -1;
+    }
+    printf("%s loaded to memory\n",source_file_name);
+    fclose(source_file_pointer);
+
+    sourceCodePrint(assembler->source_code);
+
     return 0;
 }
 
+/*int assemblerFindLabels(struct Assembler *assembler){
+    unsigned int i=0;
+    char line[256],*name_ptr;
+    for(i=0;i<assembler->clean_code.size;++i){
+	name_ptr=cleanCodeGetLine(&assembler->clean_code,i);
+	if(name_ptr==NULL){
+	    printf("error retrieving line %u for label finding",i);
+	    return -1;
+	}
+	if(*name_ptr=='@'){
+	    name_ptr++;
+	    strcpy(line,name_ptr);
+	    if(strlen(line)<2){
+		printf("error: bad label at line %u: %s",i,line);
+		return -1;
+	    }
+	    while(*name_ptr!=0)
+		name_ptr++;
+	    name_ptr--;
+	    if(*name_ptr==':'){
+		name_ptr=line;
+		while(*name_ptr!=':')
+		    name_ptr++;
+		*name_ptr=0;
+		/*printf("found label %s\n",line);*/
+                /*if(assembler->labels==NULL){
+		    labelInitialize(assembler->labels,0,0,line);
+		}
+		else{
+		    labelPushBack(assembler->labels,0,0,line);
+		}
+	    }
+	    else{
+		printf("error: bad label at line %u: %s",i,line);
+		return -1;
+	    }
+	}
+    }
+    return 0;
+}*/
 
 /* ADD ADDC ALS AND ARS
  * BR BRL
@@ -136,7 +205,5 @@ int assemblerDetectInstruction(char *line){
 }*/
 
 void assemblerDestroy(struct Assembler *assembler){
-    sourceCodeDestroy(&assembler->source_code);
-    cleanCodeDestroy(&assembler->clean_code);
-    labelDestroy(assembler->labels);
+    printf("assembler destroyed");
 }

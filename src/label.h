@@ -19,6 +19,8 @@ int labelInitialize(struct Label *label,uint32_t address,char fixed,char* name);
 
 int labelPushBack(struct Label *label,uint32_t address,char fixed,char* name);
 
+void labelPrintLabels(struct Label *label);
+
 void labelDestroy(struct Label *label);
 
 #endif

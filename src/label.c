@@ -1,6 +1,6 @@
 #include "label.h"
 
-int labelInitialize(struct Label *label, uint32_t address, char fixed, char *name){
+/*int labelInitialize(struct Label *label, uint32_t address, char fixed, char *name){
     label=(struct Label*)malloc(sizeof(struct Label));
     if(label==NULL){
 	printf("error: label %s malloc failed\n",name);
@@ -31,3 +31,16 @@ void labelDestroy(struct Label *label){
 	label=next_label;
     }
 }
+
+void labelPrintLabels(struct Label *label){
+    struct Label *current_label;
+    if(label==NULL){
+	printf("no labels to print\n");
+    }
+    else{
+	while(current_label!=NULL){
+	    printf("label %s\n",current_label->name);
+	    current_label=current_label->next;
+	}
+    }
+}*/

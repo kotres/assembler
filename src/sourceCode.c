@@ -1,77 +1,115 @@
 #include "sourceCode.h"
-#define FILE_BUFFER_SIZE 256
 
-int sourceCodeInitialise(struct SourceCode *code,char* source_file_name){
-    FILE *source_file_pointer;
-
-    char fileBuffer[FILE_BUFFER_SIZE];
-    unsigned int i=0;
-
-    source_file_pointer = fopen(source_file_name,"r");
-    if(source_file_pointer==NULL){
-	printf("error: failed to open file %s\n",source_file_name);
+int sourceCodeInitialise(struct SourceCode **code,const char* line,unsigned int line_number){
+    char line_buffer[256];
+    struct SourceCode *malloced_code;
+    if(*code!=NULL){
+	printf("source code initialisation error: non NULL pointer given\n");
 	return -1;
     }
-
-    code->size=sourceCodeGetFileLineSize(source_file_pointer);
-    if(code->size==0){
-	printf("error: empty file detected");
-	fclose(source_file_pointer);
+    strncpy(line_buffer,line,sizeof(line_buffer));
+    if(line_buffer[0]==0)
+	return 0;
+    sourceCodeCleanLine(line_buffer);
+    if(line_buffer[0]==0)
+	return 0;
+    *code=(struct SourceCode*)malloc(sizeof(struct SourceCode));
+    if(*code==NULL){
+	printf("source code initialisation error: malloc failed\n");
 	return -1;
     }
-
-    code->data=(char**)malloc( code->size * sizeof(char*));
-    if(code->data==NULL){
-	printf("error: source code malloc failed");
-	fclose(source_file_pointer);
-	return -1;
-    }
-
-    while(fgets(fileBuffer,FILE_BUFFER_SIZE,(FILE*)source_file_pointer)){
-	code->data[i]=(char*)malloc((strlen(fileBuffer)+1)*sizeof(char));
-	if(code->data[i]==NULL){
-	    printf("error: source code line malloc failed");
-	    fclose(source_file_pointer);
-	    return -1;
-	}
-	strcpy(code->data[i], fileBuffer);
-	++i;
-    }
-
-    if(ferror(source_file_pointer)){
-	printf("I/O error when reading");
-	fclose(source_file_pointer);
-	return -1;
-    }
-    printf("%s loaded to memory\n",source_file_name);
-    fclose(source_file_pointer);
-
-    code->name=source_file_name;
+    malloced_code=*code;
+    strncpy(malloced_code->line,line,sizeof(malloced_code->line));
+    strncpy(malloced_code->clean_line,line_buffer,sizeof(malloced_code->clean_line));
+    malloced_code->line_number=line_number;
+    malloced_code->next_line=NULL;
     return 0;
 }
 
-unsigned int sourceCodeGetFileLineSize(FILE *fp){
-    char fileBuffer[FILE_BUFFER_SIZE];
-    unsigned int i=0;
-    while(fgets(fileBuffer,FILE_BUFFER_SIZE,(FILE*)fp)){
-	++i;
+int sourceCodePushBack(struct SourceCode *code,const char* line,unsigned int line_number){
+    char line_buffer[256];
+    struct SourceCode *next_line;
+    if(code==NULL){
+	printf("source code push back error: NULL pointer given\n");
+	return -1;
     }
-    rewind(fp);
-    return i;
+
+    while(code->next_line!=NULL){
+	code=code->next_line;
+    }
+
+    strncpy(line_buffer,line,sizeof(line_buffer));
+    if(line_buffer[0]==0)
+	return 0;
+    sourceCodeCleanLine(line_buffer);
+    if(line_buffer[0]==0)
+	return 0;
+    code->next_line=(struct SourceCode*)malloc(sizeof(struct SourceCode));
+    if(code->next_line==NULL){
+	printf("source code push back error: malloc failed\n");
+	return -1;
+    }
+    next_line=code->next_line;
+    strncpy(next_line->line,line,sizeof(next_line->line));
+    strncpy(next_line->clean_line,line_buffer,sizeof(next_line->clean_line));
+    next_line->line_number=line_number;
+    next_line->next_line=NULL;
+    return 0;
 }
 
-char* sourceCodeGetLine(struct SourceCode *code,unsigned int line_number){
-    if(line_number>code->size){
-	return NULL;
+void sourceCodePrint(struct SourceCode *code){
+    while(code!=NULL){
+	printf("%u: %s",code->line_number,code->line);
+	code=code->next_line;
     }
-    return code->data[line_number];
 }
 
-void sourceCodeDestroy(struct SourceCode *code){
-    unsigned int i=0;
-    for(i=0;i<code->size;++i){
-	free(code->data[i]);
+void sourceCodeCleanLine(const char *line){
+    char *end_of_line=NULL;
+    sourceCodeRemoveWhitespace(line);
+    end_of_line=strchr(line, ';');
+    if(end_of_line!=NULL){
+	*end_of_line=0;
     }
-    free(*code->data);
+    end_of_line=strchr(line, '\r');
+    if(end_of_line!=NULL){
+	*end_of_line=0;
+    }
+    end_of_line=strchr(line, '\n');
+    if(end_of_line!=NULL){
+	*end_of_line=0;
+    }
+    sourceCodeConvertToUpperCase(line);
 }
 
+
+void sourceCodeRemoveWhitespace(const char *line){
+    char *whitespace_position=NULL;
+    char *p=NULL;
+    whitespace_position=strchr(line, ' ');
+    while(whitespace_position!=NULL){
+	p=whitespace_position;
+	while(*p!=0){
+	    *p=*(p+1);
+	    p++;
+	}
+	whitespace_position=strchr(line, ' ');
+    }
+    whitespace_position=strchr(line, '\t');
+    while(whitespace_position!=NULL){
+	p=whitespace_position;
+	while(*p!=0){
+	    *p=*(p+1);
+	    p++;
+	}
+	whitespace_position=strchr(line, '\t');
+    }
+}
+
+void sourceCodeConvertToUpperCase(const char *line){
+    char* lower_case_character=(char*)line;
+    while(*lower_case_character!=0){
+	*lower_case_character=(char)(toupper(*lower_case_character));
+	lower_case_character++;
+    }
+}

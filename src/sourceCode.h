@@ -4,21 +4,33 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
+#include <stdint.h>
 
 struct SourceCode
 {
-    char* name;
-    char** data;
-    unsigned int size;
+    char line[256];
+    char clean_line[256];
+    unsigned int line_number;
+    struct SourceCode *next_line;
 };
 
-int sourceCodeInitialise(struct SourceCode *code,char* source_file_name);
+int sourceCodeInitialise(struct SourceCode **code,const char* line,unsigned int line_number);
 
-unsigned int sourceCodeGetFileLineSize(FILE *fp);
+int sourceCodePushBack(struct SourceCode *code,const char* line,unsigned int line_number);
 
-char* sourceCodeGetLine(struct SourceCode *code,unsigned int line_number);
+const char* sourceCodeGetLine(struct SourceCode *code,unsigned int line_number);
 
-void sourceCodeDestroy(struct SourceCode *code);
+const char* sourceCodeGetCleanLine(struct SourceCode *code,unsigned int line_number);
 
+void sourceCodeDestroy(struct SourceCode **code);
+
+void sourceCodePrint(struct SourceCode *code);
+
+void sourceCodeCleanLine(const char *line);
+
+void sourceCodeRemoveWhitespace(const char *line);
+
+void sourceCodeConvertToUpperCase(const char *line);
 
 #endif
