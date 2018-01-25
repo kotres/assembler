@@ -9,8 +9,8 @@
 
 struct SourceCode
 {
-    char line[256];
-    char clean_line[256];
+    char *line;
+    char *clean_line;
     unsigned int line_number;
     struct SourceCode *next_line;
 };

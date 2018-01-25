@@ -11,9 +11,17 @@ int labelInitialize(struct Label **label, uint32_t address, const char *name){
 	printf("label initialize error: malloc failed\n");
 	return -1;
     }
+
     initialized_label=*label;
+
+    initialized_label->name=(char*)malloc((strlen(name)+1)*sizeof(char));
+    if(initialized_label->name==NULL){
+	printf("label initialize error: name malloc failed\n");
+	return -1;
+    }
+
     initialized_label->address=address;
-    strncpy(initialized_label->name,name,sizeof(initialized_label->name));
+    strcpy(initialized_label->name,name);
     initialized_label->next=NULL;
     return 0;
 }
@@ -29,9 +37,17 @@ int labelPushBack(struct Label *label, uint32_t address,const char *name){
 	printf("label push back error: malloc failed\n");
 	return -1;
     }
+
     initialized_label=label->next;
+
+    initialized_label->name=(char*)malloc((strlen(name)+1)*sizeof(char));
+    if(initialized_label->name==NULL){
+	printf("label initialize error: name malloc failed\n");
+	return -1;
+    }
+
     initialized_label->address=address;
-    strncpy(initialized_label->name,name,sizeof(initialized_label->name));
+    strcpy(initialized_label->name,name);
     initialized_label->next=NULL;
     return 0;
 
@@ -41,6 +57,7 @@ void labelDestroy(struct Label *label){
     struct Label *next_label;
     while(label!=NULL){
 	next_label=label->next;
+	free(label->name);
 	free(label);
 	label=next_label;
     }

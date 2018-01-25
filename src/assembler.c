@@ -80,10 +80,11 @@ int assemblerFindLabels(struct Assembler *assembler){
 		return -1;
 	    }
 	    line_character=1;
-	    while(source_code_iterator->clean_line[line_character]!=':'&&source_code_iterator->clean_line[line_character]!=0)
+	    while(source_code_iterator->clean_line[line_character]!=':'&&source_code_iterator->clean_line[line_character]!=0){
+		label_name[line_character-1]=source_code_iterator->clean_line[line_character];
 		line_character++;
+	    }
 	    if(source_code_iterator->clean_line[line_character]==':'){
-		strncpy(label_name,&source_code_iterator->clean_line[1],sizeof(label_name));
 		label_name[line_character-1]=0;
 		if(assembler->labels==NULL){
 		    if(labelInitialize(&assembler->labels,0,label_name)!=0)

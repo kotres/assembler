@@ -19,8 +19,21 @@ int sourceCodeInitialise(struct SourceCode **code,const char* line,unsigned int 
 	return -1;
     }
     malloced_code=*code;
-    strncpy(malloced_code->line,line,sizeof(malloced_code->line));
-    strncpy(malloced_code->clean_line,line_buffer,sizeof(malloced_code->clean_line));
+
+    malloced_code->line=(char *)malloc((strlen(line)+1)*sizeof(char));
+    if(malloced_code->line==NULL){
+	printf("source code initialisation error: line malloc failed\n");
+	return -1;
+    }
+
+    malloced_code->clean_line=(char *)malloc((strlen(line_buffer)+1)*sizeof(char));
+    if(malloced_code->clean_line==NULL){
+	printf("source code initialisation error: clean line malloc failed\n");
+	return -1;
+    }
+
+    strcpy(malloced_code->line,line);
+    strcpy(malloced_code->clean_line,line_buffer);
     malloced_code->line_number=line_number;
     malloced_code->next_line=NULL;
     return 0;
@@ -49,9 +62,23 @@ int sourceCodePushBack(struct SourceCode *code,const char* line,unsigned int lin
 	printf("source code push back error: malloc failed\n");
 	return -1;
     }
+
     next_line=code->next_line;
-    strncpy(next_line->line,line,sizeof(next_line->line));
-    strncpy(next_line->clean_line,line_buffer,sizeof(next_line->clean_line));
+
+    next_line->line=(char *)malloc((strlen(line)+1)*sizeof(char));
+    if(next_line->line==NULL){
+	printf("source code initialisation error: line malloc failed\n");
+	return -1;
+    }
+
+    next_line->clean_line=(char *)malloc((strlen(line_buffer)+1)*sizeof(char));
+    if(next_line->clean_line==NULL){
+	printf("source code initialisation error: clean line malloc failed\n");
+	return -1;
+    }
+
+    strcpy(next_line->line,line);
+    strcpy(next_line->clean_line,line_buffer);
     next_line->line_number=line_number;
     next_line->next_line=NULL;
     return 0;
@@ -61,6 +88,8 @@ void sourceCodeDestroy(struct SourceCode *code){
     struct SourceCode *next_code;
     while(code!=NULL){
 	next_code=code->next_line;
+	free(code->line);
+	free(code->clean_line);
 	free(code);
 	code=next_code;
     }

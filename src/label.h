@@ -10,7 +10,7 @@
 struct Label
 {
     uint32_t address;
-    char name[256];
+    char *name;
     struct Label *next;
 };
 
