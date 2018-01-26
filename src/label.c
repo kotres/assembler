@@ -55,7 +55,7 @@ int labelPushBack(struct Label *label, uint32_t address,const char *name){
 
 struct Label* labelFindLabel(struct Label *label,const char *name){
     unsigned int i=0;
-    int match=1;
+    int match=0;
     if(name[0]==0){
 	printf("error to find label: empty name given\n");
 	return NULL;
@@ -71,16 +71,21 @@ struct Label* labelFindLabel(struct Label *label,const char *name){
     while(label!=NULL&&match==0){
 	i=0;
 	match=1;
-	while(label->name[i]!=0&&name[i+1]!=0&&match==1){
-	    if(label->name[i]!=name[i+1])
+	while(label->name[i]!=0&&name[i]!=0&&match==1){
+	    if(label->name[i]!=name[i])
 		match=0;
 	    ++i;
 	}
 	if(match!=0){
-	    if(label->name[i]!=0||name[i+1]==':'){
+	    if(label->name[i]!=0||name[i]!=0){
 		match=0;
+		label=label->next;
 	    }
 	}
+	else{
+	    label=label->next;
+	}
+
     }
     return label;
 }

@@ -16,7 +16,11 @@ int assemblerAssemble(struct Assembler *assembler,const char *source_file_name){
 	return -1;
     }
 
-    if(assemblerDecodeSourceCode(assembler)!=0){
+    if(assemblerClassifyLines(assembler)!=0){
+	return -1;
+    }
+
+    if(assemblerResolveLabelValues(assembler)!=0){
 	return -1;
     }
 
@@ -76,6 +80,9 @@ int assemblerFindLabels(struct Assembler *assembler){
     struct SourceCode *source_code_iterator=assembler->source_code;
     char label_name[256];
     unsigned int line_character;
+
+    printf("finding labels\n");
+
     while(source_code_iterator!=NULL){
 	if(source_code_iterator->clean_line[0]=='@'){
 	    if(source_code_iterator->clean_line[1]==0||source_code_iterator->clean_line[0]==':'){
@@ -98,6 +105,7 @@ int assemblerFindLabels(struct Assembler *assembler){
 		    if(labelPushBack(assembler->labels,0,label_name)!=0)
 			return -1;
 		}
+		printf("found label %s at line %u\n",label_name,source_code_iterator->line_number);
 		source_code_iterator->label=labelEnd(assembler->labels);
 		source_code_iterator->binary_size=0;
 		source_code_iterator->type=label_type;
@@ -111,8 +119,58 @@ int assemblerFindLabels(struct Assembler *assembler){
     return 0;
 }
 
-int assemblerDecodeSourceCode(struct Assembler *assembler){
+int assemblerClassifyLines(struct Assembler *assembler){
+    struct SourceCode *source_code_iterator=assembler->source_code;
+    char label_name[256];
+    unsigned int i=0,j=0;
+    printf("classifing non label source code lines\n");
+    while(source_code_iterator!=NULL){
+	switch (source_code_iterator->clean_line[0]) {
+	case '.':
+	    source_code_iterator->type=assembler_directive_type;
+	    printf("line %u: %s is an assembly directive\n",source_code_iterator->line_number,source_code_iterator->clean_line);
+	    break;
+	case '@':
+	    break;
+	default:
+	    i=0;
+	    j=0;
+	    while(source_code_iterator->clean_line[i]!=0&&source_code_iterator->clean_line[i]!='@'){
+		++i;
+	    }
+	    if(source_code_iterator->clean_line[i]=='@'){
+		++i;
+		while(source_code_iterator->clean_line[i]!=0&&source_code_iterator->clean_line[i]!=','){
+		    label_name[j]=source_code_iterator->clean_line[i];
+		    i++;
+		    j++;
+		}
+		label_name[j]=0;
+		printf("line %u: %s is a label dependent instruction with label %s\n",source_code_iterator->line_number,
+		       source_code_iterator->clean_line,
+		       label_name);
+		source_code_iterator->label=labelFindLabel(assembler->labels,label_name);
+		if(source_code_iterator->label==NULL){
+		    printf("error: could not find label %s\n",label_name);
+		    return -1;
+		}
+	    }
+	    else{
+		source_code_iterator->label=NULL;
+		source_code_iterator->type=static_code_type;
+		printf("line %u: %s is a static instruction\n",source_code_iterator->line_number,
+		       source_code_iterator->clean_line);
+	    }
+	    break;
+	}
+	source_code_iterator=source_code_iterator->next_line;
+    }
+    return 0;
+}
+
+int assemblerResolveLabelValues(struct Assembler *assembler){
     struct SourceCode *source_code=assembler->source_code;
+    printf("resolving label values\n");
     while(source_code!=NULL){
 	assemblerParseLine(assembler,&source_code);
 	source_code=source_code->next_line;
@@ -126,12 +184,14 @@ int assemblerParseLine(struct Assembler *assembler,struct SourceCode **iterator_
     case '.':
 	iterator->binary_size=0;
 	iterator->type=assembler_directive_type;
-	printf("%u: %s is an assembler directive\n",iterator->line_number,iterator->clean_line);
+	/*printf("%u: %s is an assembler directive\n",iterator->line_number,iterator->clean_line);*/
 	break;
     case'@':
-	printf("%u: %s is label %s: %u\n",iterator->line_number,iterator->clean_line,
-	       iterator->label->name,iterator->label->address);
+	/*printf("%u: %s is label %s: %u\n",iterator->line_number,iterator->clean_line,
+	       iterator->label->name,iterator->label->address);*/
 	if(iterator->label->address!=assembler->location_counter){
+	    printf("changing label %s value from %u to %u\n",iterator->label->name,iterator->label->address,
+	           assembler->location_counter);
 	    iterator->label->address=assembler->location_counter;
 	    *iterator_pointer=assembler->source_code;
 	    assembler->location_counter=0;
