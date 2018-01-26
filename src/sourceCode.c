@@ -40,6 +40,7 @@ int sourceCodeInitialise(struct SourceCode **code,const char* line,unsigned int 
     malloced_code->binary_size=0;
     malloced_code->label=NULL;
     malloced_code->type=not_determined_type;
+    malloced_code->instruction_label_value=0;
 
     return 0;
 }
@@ -90,6 +91,7 @@ int sourceCodePushBack(struct SourceCode *code,const char* line,unsigned int lin
     next_line->binary_size=0;
     next_line->label=NULL;
     next_line->type=not_determined_type;
+    next_line->instruction_label_value=0;
     return 0;
 }
 

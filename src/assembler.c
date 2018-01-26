@@ -154,6 +154,7 @@ int assemblerClassifyLines(struct Assembler *assembler){
 		    printf("error: could not find label %s\n",label_name);
 		    return -1;
 		}
+		source_code_iterator->instruction_label_value=source_code_iterator->label->address;
 	    }
 	    else{
 		source_code_iterator->label=NULL;

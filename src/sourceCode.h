@@ -1,3 +1,12 @@
+/**************************************************************************//**
+ *\file  sourceCode.h
+ *\brief Source code structure and functions.
+ *
+ *\author Michel Kuhlburger
+ *
+ *\date 26/01/2018
+******************************************************************************/
+
 #ifndef SOURCE_CODE_H
 #define SOURCE_CODE_H
 
@@ -9,41 +18,102 @@
 
 #include "label.h"
 
+/**************************************************************************//**
+ * \enum SourceCodeType
+ * \brief Used for describing the type of line a Source code node is.
+*/
 enum SourceCodeType{
-    label_type,
-    label_dependent_code_type,
-    static_code_type,
-    assembler_directive_type,
-    not_determined_type
+    label_type,/**< The source code node contains a label.*/
+    label_dependent_code_type,/**< An instruction that has a label parameter.*/
+    static_code_type,/**< An instruction that doesn't have a label parameter.*/
+    assembler_directive_type,/**< A directive for the assembler.*/
+    not_determined_type/**< The line type hasn't been determined yet.*/
 };
+
+/**************************************************************************//**
+ * \struct SourceCode
+ * \brief Node for making source code lists.
+ *
+ * SourceCode is a list node type struct that contains the original source code string and
+ * all the necessairy data to process it.
+ ******************************************************************************/
 
 struct SourceCode
 {
-    char *line;
-    char *clean_line;
-    unsigned int line_number;
-    struct SourceCode *next_line;
+    char *line;/**< The original source code line contained in a source code file, used for user messages. */
+    char *clean_line;/**< A processed version of line used for assmbling. */
+    unsigned int line_number;/**< The line number of line in the original source code file. */
+    struct SourceCode *next_line;/**< A pointer to the next node. */
 
-    unsigned int binary_size;
-    uint32_t *binary_data;
-    enum SourceCodeType type;
-    struct Label *label;
+    unsigned int binary_size;/**< The size in half words of the processed line.*/
+    uint32_t *binary_data;/**< The binary data of the processed line.*/
+    enum SourceCodeType type;/**< The type of source code line.*/
+    struct Label *label;/**< Pointer to the label needed to process the line (NULL if no label is required)*/
+    uint32_t instruction_label_value;/**< Value of the label used when processing the line*/
 
 };
 
+/**************************************************************************//**
+ * \fn int sourceCodeInitialise(struct SourceCode **code,const char* line,unsigned int line_number)
+ * \brief Initalizes a NULL source code pointer into the first node of a source code list.
+ * \param[in] code Pointer to a NULL source code pointer.
+ * \param[in] line String of line retrieved from source file.
+ * \param[in] line_number Number of the line in the source file.
+ * \return 0 if source code could be initialized, -1 if an error occured.
+******************************************************************************/
+
 int sourceCodeInitialise(struct SourceCode **code,const char* line,unsigned int line_number);
+
+/**************************************************************************//**
+ * \fn int sourceCodePushBack(struct SourceCode *code,const char* line,unsigned int line_number)
+ * \brief Creates a new source code node and puts it at the back of the list pointed by *code.
+ * \param[in] code A non NULL source code pointer.
+ * \param[in] line String of line retrieved from source file.
+ * \param[in] line_number Number of the line in the source file.
+ * \return 0 if source code node could be initialized, -1 if an error occured.
+******************************************************************************/
 
 int sourceCodePushBack(struct SourceCode *code,const char* line,unsigned int line_number);
 
-const char* sourceCodeGetCleanLine(struct SourceCode *code,unsigned int line_number);
+/**************************************************************************//**
+ * \fn void sourceCodeDestroy(struct SourceCode *code)
+ * \brief destroys source code list by freeing all alloced data assigned to it.
+ * \param[in] code A non NULL source code pointer.
+******************************************************************************/
 
 void sourceCodeDestroy(struct SourceCode *code);
 
+/**************************************************************************//**
+ * \fn sourceCodePrint(struct SourceCode *code)
+ * \brief Prints to screen all the data contained in a source code list.
+ * \param[in] code A non NULL source code pointer.
+******************************************************************************/
+
 void sourceCodePrint(struct SourceCode *code);
+
+/**************************************************************************//**
+ * \fn void sourceCodeCleanLine(const char *line)
+ * \brief Cleans a line string for later processing.
+ * Cleans a line string by removing all whitespace,
+ *  comments and converting all lower case caracters to upper case.
+ * \param[in] line A non NULL string of the line to be cleaned.
+******************************************************************************/
 
 void sourceCodeCleanLine(const char *line);
 
+/**************************************************************************//**
+ * \fn void sourceCodeRemoveWhitespace(const char *line)
+ * \brief Removes all whitespace from a string.
+ * \param[in] line A non NULL string of the string where the whitespace will be removed.
+******************************************************************************/
+
 void sourceCodeRemoveWhitespace(const char *line);
+
+/**************************************************************************//**
+ * \fn void sourceCodeConvertToUpperCase(const char *line)
+ * \brief Converts all lower case characters of a string to uper case.
+ * \param[in] line A non NULL string of the string where the whitespace will be removed.
+******************************************************************************/
 
 void sourceCodeConvertToUpperCase(const char *line);
 
