@@ -16,7 +16,7 @@ int assemblerAssemble(struct Assembler *assembler,const char *source_file_name){
 	return -1;
     }
 
-    if(assemblerClassifyLines(assembler)!=0){
+    if(assemblerDetermineLines(assembler)!=0){
 	return -1;
     }
 
@@ -119,18 +119,21 @@ int assemblerFindLabels(struct Assembler *assembler){
     return 0;
 }
 
-int assemblerClassifyLines(struct Assembler *assembler){
+int assemblerDetermineLines(struct Assembler *assembler){
     struct SourceCode *source_code_iterator=assembler->source_code;
     char label_name[256];
     unsigned int i=0,j=0;
-    printf("classifing non label source code lines\n");
+    printf("determining non label source code lines\n");
     while(source_code_iterator!=NULL){
 	switch (source_code_iterator->clean_line[0]) {
 	case '.':
-	    source_code_iterator->type=assembler_directive_type;
-	    printf("line %u: %s is an assembly directive\n",source_code_iterator->line_number,source_code_iterator->clean_line);
+	    if(sourceCodeDetermineDirective(source_code_iterator)!=0){
+		return -1;
+	    }
+	    assembler->location_counter=source_code_iterator->instruction_label_value;
 	    break;
 	case '@':
+	    source_code_iterator->label->address=assembler->location_counter;
 	    break;
 	default:
 	    i=0;
@@ -154,14 +157,20 @@ int assemblerClassifyLines(struct Assembler *assembler){
 		    printf("error: could not find label %s\n",label_name);
 		    return -1;
 		}
+		source_code_iterator->type=label_dependent_code_type;
 		source_code_iterator->instruction_label_value=source_code_iterator->label->address;
 	    }
 	    else{
 		source_code_iterator->label=NULL;
 		source_code_iterator->type=static_code_type;
-		printf("line %u: %s is a static instruction\n",source_code_iterator->line_number,
+		printf("line %u: %s is either a static instruction or a position dependent one\n",
+		       source_code_iterator->line_number,
 		       source_code_iterator->clean_line);
 	    }
+	    if(sourceCodeEncodeInstruction(source_code_iterator,assembler->location_counter)!=0){
+		return -1;
+	    }
+	    assembler->location_counter+=source_code_iterator->binary_size;
 	    break;
 	}
 	source_code_iterator=source_code_iterator->next_line;
@@ -171,153 +180,64 @@ int assemblerClassifyLines(struct Assembler *assembler){
 
 int assemblerResolveLabelValues(struct Assembler *assembler){
     struct SourceCode *source_code=assembler->source_code;
+    unsigned int code_size;
+    assembler->location_counter=0;
     printf("resolving label values\n");
     while(source_code!=NULL){
-	assemblerParseLine(assembler,&source_code);
-	source_code=source_code->next_line;
-    }
-    return 0;
-}
-
-int assemblerParseLine(struct Assembler *assembler,struct SourceCode **iterator_pointer){
-    struct SourceCode *iterator=*iterator_pointer;
-    switch (iterator->clean_line[0]) {
-    case '.':
-	iterator->binary_size=0;
-	iterator->type=assembler_directive_type;
-	/*printf("%u: %s is an assembler directive\n",iterator->line_number,iterator->clean_line);*/
-	break;
-    case'@':
-	/*printf("%u: %s is label %s: %u\n",iterator->line_number,iterator->clean_line,
-	       iterator->label->name,iterator->label->address);*/
-	if(iterator->label->address!=assembler->location_counter){
-	    printf("changing label %s value from %u to %u\n",iterator->label->name,iterator->label->address,
-	           assembler->location_counter);
-	    iterator->label->address=assembler->location_counter;
-	    *iterator_pointer=assembler->source_code;
-	    assembler->location_counter=0;
-	}
-	break;
-    default:
-	assembler->location_counter++;
-	break;
-    }
-    return 0;
-}
-
-/* ADD ADDC ALS AND ARS
- * BR BRL
- * CMP
- * DIV
- * HALT
- * INT
- * LLS LOAD LOADS LODL LODLS LRS
- * MOV MOVN MUL
- * NOP NOR NAND
- * OR
- * PUSH PUSHS POP POPS
- * RSUB RSUBB RR RRC RL RLC
- * STOR STORS SUB SUBB
- * TST TEQ
- * UDIV UMUL
- * XCH XOR
-  */
-/*int assemblerParseLine(struct Assembler *assembler, char *line){
-    switch (line[0]) {
-    case 0:
-	return 0;
-	break;
-    case '.':
-	printf("%s assembler instruction\n",line);
-	break;
-    case '@':
-	printf("%s label\n",line);
-	break;
-    default:
-	printf("%s\n",line);
-	break;
-    }
-    return 0;
-}
-
-
-int assemblerDetectInstruction(char *line){
-    switch (line[0]) {
-    case 0:
-	break;
-    case 'A':
-	switch (line[1]) {
-	case 0:
-	    return -1;
+	switch (source_code->type) {
+	case label_dependent_code_type:
+	    code_size=source_code->binary_size;
+	    if(source_code->instruction_label_value!=source_code->label->address){
+		printf("rewriting %u line due to outdated label value\n",source_code->line_number);
+		source_code->instruction_label_value=source_code->label->address;
+	    }
+	    if(source_code->binary_size==code_size){
+		assembler->location_counter+=source_code->binary_size;
+		source_code=source_code->next_line;
+	    }
+	    else{
+		assembler->location_counter=0;
+		source_code=assembler->source_code;
+	    }
 	    break;
-	case 'D':
-	    printf("AD\n");
+	case position_dependent_code_type:
+	    code_size=source_code->binary_size;
+	    printf("rewriting %u line due to possible outdated position value\n",source_code->line_number);
+	    if(source_code->binary_size==code_size){
+		assembler->location_counter+=source_code->binary_size;
+		source_code=source_code->next_line;
+	    }
+	    else{
+		assembler->location_counter=0;
+		source_code=assembler->source_code;
+	    }
 	    break;
-	case 'L':
-	    printf("AL\n");
+	case org_type:
+	    assembler->location_counter=source_code->instruction_label_value;
+	    source_code=source_code->next_line;
 	    break;
-	case 'N':
-	    printf("AN\n");
-	    break;
-	case 'R':
-	    printf("AR\n");
+	case label_type:
+	    if(source_code->label->address!=assembler->location_counter){
+		printf("changing label %s value from %u to %u\n",source_code->label->name,source_code->label->address,
+		       assembler->location_counter);
+		source_code->label->address=assembler->location_counter;
+		assembler->location_counter=0;
+		source_code=assembler->source_code;
+	    }
+	    else{
+		source_code=source_code->next_line;
+	    }
 	    break;
 	default:
+	    assembler->location_counter+=source_code->binary_size;
+	    source_code=source_code->next_line;
 	    break;
 	}
-	break;
-    case 'B':
-	printf("B\n");
-	break;
-    case 'C':
-	printf("C\n");
-	break;
-    case 'D':
-	printf("D\n");
-	break;
-    case 'H':
-	printf("H\n");
-	break;
-    case 'I':
-	printf("I\n");
-	break;
-    case 'L':
-	printf("L\n");
-	break;
-    case 'M':
-	printf("M\n");
-	break;
-    case 'N':
-	printf("N\n");
-	break;
-    case 'O':
-	printf("O\n");
-	break;
-    case 'P':
-	printf("P\n");
-	break;
-    case 'R':
-	printf("R\n");
-	break;
-    case 'S':
-	printf("S\n");
-	break;
-    case 'T':
-	printf("T\n");
-	break;
-    case 'U':
-	printf("U\n");
-	break;
-    case 'X':
-	printf("X\n");
-	break;
-    default:
-	return -1;
-	break;
     }
-    return 1;
+    return 0;
+}
 
-}*/
+
 
 void assemblerDestroy(struct Assembler *assembler){
     sourceCodeDestroy(assembler->source_code);

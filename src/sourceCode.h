@@ -25,8 +25,9 @@
 enum SourceCodeType{
     label_type,/**< The source code node contains a label.*/
     label_dependent_code_type,/**< An instruction that has a label parameter.*/
+    position_dependent_code_type,/**< The instruction's value depends on its half word position.*/
     static_code_type,/**< An instruction that doesn't have a label parameter.*/
-    assembler_directive_type,/**< A directive for the assembler.*/
+    org_type,/**< An org directive overwriting the assembler's location counter.*/
     not_determined_type/**< The line type hasn't been determined yet.*/
 };
 
@@ -46,11 +47,29 @@ struct SourceCode
     struct SourceCode *next_line;/**< A pointer to the next node. */
 
     unsigned int binary_size;/**< The size in half words of the processed line.*/
-    uint32_t *binary_data;/**< The binary data of the processed line.*/
+    uint16_t *binary_data;/**< The binary data of the processed line.*/
     enum SourceCodeType type;/**< The type of source code line.*/
     struct Label *label;/**< Pointer to the label needed to process the line (NULL if no label is required)*/
     uint32_t instruction_label_value;/**< Value of the label used when processing the line*/
 
+};
+
+enum ProcessorInstructions{
+    ALU_instruction,
+    SHIFT_instruction,
+    LOAD_instruction,
+    LODL_instruction,
+    MOV_instruction,
+    MUL_instruction,
+    BR_instruction,
+    BRL_instruction,
+    HALT_instruction,
+    INT_instruction,
+    NOP_instruction,
+    PUSH_instruction,
+    POP_instruction,
+    STOR_instruction,
+    INVALID_instruction
 };
 
 /**************************************************************************//**
@@ -116,5 +135,17 @@ void sourceCodeRemoveWhitespace(const char *line);
 ******************************************************************************/
 
 void sourceCodeConvertToUpperCase(const char *line);
+
+int sourceCodeDetermineDirective(struct SourceCode *source_code_iterator);
+
+int sourceCodeEncodeInstruction(struct SourceCode *source_code_iterator,uint32_t position);
+
+int sourceCodeEncodeALUInstruction(struct SourceCode *source_code_iterator, unsigned char opcode, char *parameters);
+
+enum ProcessorInstructions sourceCodeDetermineInstructionType(char **line_ptr, unsigned char *opcode);
+
+unsigned char sourceCodeDetermineRegister(char **line_ptr);
+
+int sourceCodeDetermineImmediate(char** line_ptr,uint32_t *immediate);
 
 #endif
